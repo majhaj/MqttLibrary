@@ -45,6 +45,19 @@ namespace MqttLibrary
             }
         }
 
+        public void Unsubscribe(string topic)
+        {
+            if (mqttClient.IsConnected)
+            {
+                mqttClient.Unsubscribe(new string[] { topic });
+                Console.WriteLine($"Zakończono subskrypcję tematu: {topic}");
+            }
+            else
+            {
+                Console.WriteLine("Brak połączenia z brokerem MQTT.");
+            }
+        }
+
         private void mqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e)
         {
             Console.WriteLine($"Wiadomość opublikowana na temat: {e.MessageId}");

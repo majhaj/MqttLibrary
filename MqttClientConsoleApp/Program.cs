@@ -26,6 +26,9 @@ class Program
         Console.WriteLine($"Publikowanie wiadomości na temat: {topicToPublish}");
         mqttClient.Publish(mqttMessage);
 
+        string topicToUnsubscribe = "testtopic";
+        mqttClient.Unsubscribe(topicToUnsubscribe);
+
         mqttClient.MessageReceived += (sender, e) =>
         {
             Console.WriteLine($"Odebrano wiadomość na temat: {e.Topic}");
