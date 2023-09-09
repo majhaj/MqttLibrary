@@ -1,78 +1,76 @@
-﻿
-using MqttLibrary;
-using System;
-using uPLibrary.Networking.M2Mqtt.Messages;
+﻿using System.Net;
+using System.Text;
 using uPLibrary.Networking.M2Mqtt;
-using System.Net;
+using uPLibrary.Networking.M2Mqtt.Messages;
 
-public class MqttClientManager
+namespace MqttLibrary
 {
-    private MqttClient mqttClient;
-    private string MQTT_BROKER_ADDRESS = "mqtt-dashboard.com";
-    private int MQTT_BROKER_PORT = 8884;
-
-    public event EventHandler<MqttMessageEventArgs> MessageReceived;
-
-    public MqttClientManager()
+    public class MqttClientManager
     {
-        mqttClient = new MqttClient(IPAddress.Parse(MQTT_BROKER_ADDRESS));
-        mqttClient.MqttMsgPublished += mqttClient_MqttMsgPublished;
-        mqttClient.MqttMsgPublishReceived += mqttClient_MqttMsgPublishReceived;
+        private readonly MqttClient mqttClient;
 
-        string clientId = Guid.NewGuid().ToString();
-        mqttClient.Connect(clientId);
-    }
+        public event EventHandler<MqttMessageEventArgs> MessageReceived;
 
-    public void Publish(MqttMessage mqttMessage)
-    {
-        if (mqttClient.IsConnected)
+        public MqttClientManager(string brokerAddress, int brokerPort, string clientId)
         {
-            byte[] messageBytes = System.Text.Encoding.UTF8.GetBytes(mqttMessage.Message);
-            mqttClient.Publish(mqttMessage.Topic, messageBytes, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+            mqttClient = new MqttClient(IPAddress.Parse(brokerAddress), brokerPort, true, null, null, MqttSslProtocols.TLSv1_2);
+            mqttClient.MqttMsgPublished += mqttClient_MqttMsgPublished;
+            mqttClient.MqttMsgPublishReceived += mqttClient_MqttMsgPublishReceived;
+
+            mqttClient.Connect(clientId);
         }
-        else
+
+        public void Publish(MqttMessage mqttMessage)
         {
-            Console.WriteLine("Błąd: Nie można połączyć się z brokerem MQTT.");
+            if (mqttClient.IsConnected)
+            {
+                byte[] messageBytes = Encoding.UTF8.GetBytes(mqttMessage.Message);
+                mqttClient.Publish(mqttMessage.Topic, messageBytes, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+            }
+            else
+            {
+                Console.WriteLine("Brak połączenia z brokerem MQTT.");
+            }
         }
-    }
 
-    public void Subscribe(string topic)
-    {
-        if (mqttClient.IsConnected)
+        public void Subscribe(string topic)
         {
-            mqttClient.Subscribe(new string[] { topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            if (mqttClient.IsConnected)
+            {
+                mqttClient.Subscribe(new string[] { topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            }
+            else
+            {
+                Console.WriteLine("Brak połączenia z brokerem MQTT.");
+            }
         }
-        else
+
+        private void mqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e)
         {
-            Console.WriteLine("Błąd: Nie można połączyć się z brokerem MQTT.");
+            Console.WriteLine($"Wiadomość opublikowana na temat: {e.MessageId}");
+        }
+
+        private void mqttClient_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
+        {
+            string message = Encoding.UTF8.GetString(e.Message);
+            OnMessageReceived(e.Topic, message);
+        }
+
+        protected virtual void OnMessageReceived(string topic, string message)
+        {
+            MessageReceived?.Invoke(this, new MqttMessageEventArgs(topic, message));
         }
     }
 
-    private void mqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e)
+    public class MqttMessageEventArgs : EventArgs
     {
-        Console.WriteLine($"Wiadomość opublikowana na temat: {e.MessageId}");
-    }
+        public string Topic { get; }
+        public string Message { get; }
 
-    private void mqttClient_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
-    {
-        string message = System.Text.Encoding.UTF8.GetString(e.Message);
-        OnMessageReceived(e.Topic, message);
-    }
-
-    protected virtual void OnMessageReceived(string topic, string message)
-    {
-        MessageReceived?.Invoke(this, new MqttMessageEventArgs(topic, message));
-    }
-}
-
-public class MqttMessageEventArgs : EventArgs
-{
-    public string Topic { get; }
-    public string Message { get; }
-
-    public MqttMessageEventArgs(string topic, string message)
-    {
-        Topic = topic;
-        Message = message;
+        public MqttMessageEventArgs(string topic, string message)
+        {
+            Topic = topic;
+            Message = message;
+        }
     }
 }
