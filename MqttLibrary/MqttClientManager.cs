@@ -11,13 +11,17 @@ namespace MqttLibrary
 
         public event EventHandler<MqttMessageEventArgs> MessageReceived;
 
-        public MqttClientManager(string brokerAddress, int brokerPort, string clientId)
+        public MqttClientManager(string brokerHostName,
+                                 int brokerPort, 
+                                 string clientId, 
+                                 string username, 
+                                 string password)
         {
-            mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.TLSv1_2);
+            mqttClient = new MqttClient(brokerHostName, brokerPort, false, null, null, MqttSslProtocols.TLSv1_2);
             mqttClient.MqttMsgPublished += mqttClient_MqttMsgPublished;
             mqttClient.MqttMsgPublishReceived += mqttClient_MqttMsgPublishReceived;
 
-           mqttClient.Connect(clientId);
+           mqttClient.Connect(clientId, username, password);
 
         }
 

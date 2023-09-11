@@ -7,9 +7,11 @@ class Program
         string brokerAddress = "mqtt-dashboard.com";
         int brokerPort = 8884;
         string clientId = "clientId-Xz6pIZBn5F";
+        string username = "admin";
+        string password = "admin1";
 
         Console.WriteLine("Inicjalizacja klienta MQTT...");
-        MqttClientManager mqttClient = new MqttClientManager(brokerAddress, brokerPort, clientId);
+        MqttClientManager mqttClient = new MqttClientManager(brokerAddress, brokerPort, clientId, username, password);
 
         string topicToSubscribe = "testtopic";
         mqttClient.Subscribe(topicToSubscribe);
