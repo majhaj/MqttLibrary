@@ -13,11 +13,12 @@ namespace MqttLibrary
 
         public MqttClientManager(string brokerAddress, int brokerPort, string clientId)
         {
-            mqttClient = new MqttClient(IPAddress.Parse(brokerAddress), brokerPort, true, null, null, MqttSslProtocols.TLSv1_2);
+            mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.TLSv1_2);
             mqttClient.MqttMsgPublished += mqttClient_MqttMsgPublished;
             mqttClient.MqttMsgPublishReceived += mqttClient_MqttMsgPublishReceived;
 
-            mqttClient.Connect(clientId);
+           mqttClient.Connect(clientId);
+
         }
 
         public void Publish(MqttMessage mqttMessage)

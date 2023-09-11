@@ -15,7 +15,7 @@ class Program
         mqttClient.Subscribe(topicToSubscribe);
         Console.WriteLine($"Zasubskrybowano temat: {topicToSubscribe}");
 
-        string topicToPublish = "testtopic";
+        string topicToPublish = "testtopic1";
         string messageToPublish = "Hello world!";
         MqttMessage mqttMessage = new MqttMessage
         {
